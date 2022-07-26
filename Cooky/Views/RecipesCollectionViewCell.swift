@@ -7,46 +7,100 @@
 
 import UIKit
 
+struct RecipesCollectionViewCellViewModel {
+    var credits: Credit?
+    var rating: UserRatings?
+    var foodName: String
+    var cookingDuration: Int?
+    var imageURL: String
+}
+
+
 class RecipesCollectionViewCell: UICollectionViewCell {
     static let identifier = "RecipesCollectionViewCell"
     
     private let backgroundImageView: UIImageView = {
-       let imageView = UIImageView()
-        imageView.contentMode = .scaleToFill
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
         return imageView
+    }()
+    
+    private let topLabelsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.distribution = .equalSpacing
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
+    private let bottomLabelsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.distribution = .equalSpacing
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.spacing = 16
+        return stackView
+    }()
+    
+    private let recipeCreditsLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16)
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+        return label
+    }()
+    
+    private let recipeRatingLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 16)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.isHidden = true
+        return label
     }()
     
     private let recipeNameLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 24, weight: .bold)
         return label
     }()
     
     private let recipeDurationLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.lineBreakMode = .byWordWrapping
+        label.numberOfLines = 0
+        label.font = .systemFont(ofSize: 16)
+        label.isHidden = true
         return label
     }()
     
-    private let addToFavoritesButton: UIButton = {
-        let button = UIButton()
-        button.setBackgroundImage(UIImage(systemName: "heart"), for: .normal)
-        button.tintColor = .systemGray
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         addSubview(backgroundImageView)
+        
+        let tintView = UIView()
+        tintView.backgroundColor = UIColor(white: 0, alpha: 0.6)
+        tintView.frame = bounds
+        addSubview(tintView)
+        
         sendSubviewToBack(backgroundImageView)
-        addSubview(addToFavoritesButton)
-        addSubview(recipeNameLabel)
-        addSubview(recipeDurationLabel)
-        layer.borderWidth = 1
+        
+        addSubview(topLabelsStackView)
+        addSubview(bottomLabelsStackView)
+        
         layer.cornerRadius = 16
+        clipsToBounds = true
     }
     
     required init?(coder: NSCoder) {
@@ -55,20 +109,92 @@ class RecipesCollectionViewCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         backgroundImageView.frame = contentView.bounds
-        addToFavoritesButton.frame = CGRect(x: contentView.frame.width - 56, y: 16, width: 40, height: 32)
         let constraints = [
-            recipeDurationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            recipeDurationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
-            recipeNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            recipeNameLabel.bottomAnchor.constraint(equalTo: recipeDurationLabel.topAnchor, constant: -16)
+            topLabelsStackView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            topLabelsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            topLabelsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            bottomLabelsStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            bottomLabelsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            bottomLabelsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
         ]
         NSLayoutConstraint.activate(constraints)
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        recipeNameLabel.text = nil
+        recipeDurationLabel.text = nil
+        backgroundImageView.image = nil
     }
     
-    func configure(with category: String){
+    func configure(with recipe: RecipesCollectionViewCellViewModel){
+        
+        if let credits = recipe.credits {
+            recipeCreditsLabel.text = credits.name
+            recipeCreditsLabel.isHidden = false
+        }
+        
+        if let ratingScore = recipe.rating?.score {
+            let twoDecimalRating = String(format: "  %.1f", ratingScore * 5.0)
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(systemName: "star")?.withTintColor(.white)
+
+            let fullString = NSMutableAttributedString(string: "")
+            fullString.append(NSAttributedString(attachment: imageAttachment))
+            fullString.append(NSAttributedString(string: twoDecimalRating))
+            
+            recipeRatingLabel.attributedText = fullString
+            recipeRatingLabel.isHidden = false
+        }
+        
+        recipeCreditsLabel.sizeToFit()
+        recipeRatingLabel.sizeToFit()
+        
+        topLabelsStackView.addArrangedSubview(recipeCreditsLabel)
+        topLabelsStackView.addArrangedSubview(recipeRatingLabel)
+        
+        
+        if let prepTime = recipe.cookingDuration {
+            let filteredTimeString = prepTime < 90 ? "  \(prepTime) mins" : "  \(prepTime/60) hrs"
+            
+            let imageAttachment = NSTextAttachment()
+            imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
+
+            let fullString = NSMutableAttributedString(string: "")
+            fullString.append(NSAttributedString(attachment: imageAttachment))
+            fullString.append(NSAttributedString(string: filteredTimeString))
+            
+            recipeDurationLabel.attributedText = fullString
+            recipeDurationLabel.isHidden = false
+        }
+        
+        
+        recipeNameLabel.frame = CGRect(x: 0, y: 0, width: contentView.frame.width - 32, height: 0)
+        recipeNameLabel.text = recipe.foodName
+        
+        
+        recipeDurationLabel.sizeToFit()
+        recipeNameLabel.sizeToFit()
+        
+        bottomLabelsStackView.addArrangedSubview(recipeNameLabel)
+        bottomLabelsStackView.addArrangedSubview(recipeDurationLabel)
+        
+        if let url = URL(string: recipe.imageURL) {
+            backgroundImageView.load(url: url)
+        }
+    }
+}
+
+extension UIImageView {
+    func load(url: URL) {
+        DispatchQueue.global().async { [weak self] in
+            if let data = try? Data(contentsOf: url) {
+                if let image = UIImage(data: data) {
+                    DispatchQueue.main.async {
+                        self?.image = image
+                    }
+                }
+            }
+        }
     }
 }

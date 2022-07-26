@@ -8,7 +8,7 @@
 import UIKit
 
 class MainViewController: UIViewController {
-    private let recipes = Array.init(repeating: "Some recipe", count: 10)
+    private var recipes = [Recipe]()
     
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -81,10 +81,15 @@ class MainViewController: UIViewController {
         categoriesCollectionView.dataSource = self
         recipesCollectionView.delegate = self
         recipesCollectionView.dataSource = self
+        getPopularRecipes()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        setUI()
+    }
+    
+    func setUI(){
         let constraints = [
             headerLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 16),
             headerLabel.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
@@ -104,14 +109,35 @@ class MainViewController: UIViewController {
         categoriesCollectionView.frame = CGRect(x: 0, y: searchBar.frame.maxY + 16, width: view.frame.width, height: 48)
         categoriesCollectionView.contentOffset = CGPoint(x: -16, y: 0)
         recipesCollectionView.frame = CGRect(x: 16, y: categoriesCollectionView.frame.maxY + 16, width: view.frame.width - 32, height: (recipesCollectionView.frame.width * 0.75 + 10) * CGFloat(recipes.count))
-        scrollView.contentSize = CGSize(width: view.frame.width, height: recipesCollectionView.frame.maxY + 8)
+        scrollView.contentSize = CGSize(width: view.frame.width, height: recipesCollectionView.frame.maxY)
+    }
+    
+    func getPopularRecipes() {
+        APICaller.shared.getPopularRecipes {
+            result in
+            switch result {
+            case .success(let recipes):
+                DispatchQueue.main.async {
+                    [weak self] in
+                    self?.recipes = recipes
+                    self?.setUI()
+                    self?.recipesCollectionView.reloadData()
+                }
+            case .failure(let error):
+                print(error)
+            }
+        }
     }
 
 }
 
 extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10
+        if collectionView == categoriesCollectionView {
+            return 10
+        } else {
+            return recipes.count
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -125,6 +151,13 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecipesCollectionViewCell.identifier, for: indexPath) as? RecipesCollectionViewCell else {
                 return UICollectionViewCell()
             }
+            let recipe = recipes[indexPath.row]
+            let credits = recipe.credits[0]
+            let ratings = recipe.userRatings
+            let foodName = recipe.name
+            let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
+            let imageURL = recipe.thumbnailURL
+            cell.configure(with: RecipesCollectionViewCellViewModel(credits: credits, rating: ratings, foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
             return cell
         }
     }
@@ -147,6 +180,9 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return
         }
         cell.didSelect()
+        } else {
+            let vc = RecipeViewController(recipe: recipes[indexPath.row])
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
 }
