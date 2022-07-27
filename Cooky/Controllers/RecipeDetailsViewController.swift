@@ -101,6 +101,45 @@ class RecipeDetailsViewController: UIViewController {
         return collectionView
     }()
     
+    private let buttonsStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.distribution = .fillEqually
+        stackView.backgroundColor = .systemGray5
+        stackView.layer.cornerRadius = 8
+        stackView.clipsToBounds = true
+        return stackView
+    }()
+    
+    private let ingredientsButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Ingredients", for: .normal)
+        button.heightAnchor.constraint(equalToConstant: button.titleLabel!.frame.height + 16).isActive = true
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        return button
+    }()
+    
+    private let instructionsButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Instructions", for: .normal)
+        button.heightAnchor.constraint(equalToConstant: button.titleLabel!.frame.height + 16).isActive = true
+        button.layer.cornerRadius = 8
+        button.clipsToBounds = true
+        button.setTitleColor(.black, for: .normal)
+        return button
+    }()
+    
+    private let selectedButtonlabel: UILabel = {
+        let label = UILabel()
+        label.backgroundColor = .systemGreen
+        label.layer.cornerRadius = 8
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.clipsToBounds = true
+        return label
+    }()
+    
     init(recipe: Recipe){
         self.recipe = recipe
         super.init(nibName: nil, bundle: nil)
@@ -192,6 +231,42 @@ class RecipeDetailsViewController: UIViewController {
         nutritionCollectionView.delegate = self
         nutritionCollectionView.dataSource = self
         
+        mainContentView.addSubview(buttonsStackView)
+        buttonsStackView.addSubview(selectedButtonlabel)
+        buttonsStackView.addArrangedSubview(ingredientsButton)
+        buttonsStackView.addArrangedSubview(instructionsButton)
+        
+        ingredientsButton.addTarget(self, action: #selector(didTapIngredientsButton), for: .touchUpInside)
+        instructionsButton.addTarget(self, action: #selector(didTapInstructionsButton), for: .touchUpInside)
+        
+        
+        let sv = UIScrollView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        
+        let someView = UIView()
+        someView.translatesAutoresizingMaskIntoConstraints = false
+        someView.backgroundColor = .systemYellow
+        
+        sv.addSubview(someView)
+        
+        NSLayoutConstraint.activate([
+            someView.topAnchor.constraint(equalTo: sv.topAnchor),
+            someView.leadingAnchor.constraint(equalTo: sv.leadingAnchor),
+            someView.trailingAnchor.constraint(equalTo: sv.trailingAnchor),
+            someView.widthAnchor.constraint(equalTo: sv.widthAnchor),
+            someView.bottomAnchor.constraint(equalTo: sv.bottomAnchor),
+            someView.heightAnchor.constraint(equalToConstant: 1500)
+        ])
+        
+        let widthCon = NSLayoutConstraint(item: someView, attribute: .width, relatedBy: .equal, toItem: sv, attribute: .width, multiplier: 1.0, constant: 0)
+        widthCon.isActive = true
+        
+        let heightCon = NSLayoutConstraint(item: someView, attribute: .height, relatedBy: .equal, toItem: sv, attribute: .height, multiplier: 1.0, constant: 0)
+        heightCon.isActive = true
+        heightCon.priority = .defaultLow
+        
+        mainContentView.addSubview(sv)
+        
         let scrollView = UIScrollView()
         scrollView.backgroundColor = .white
         scrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -227,6 +302,17 @@ class RecipeDetailsViewController: UIViewController {
             nutritionCollectionView.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
             nutritionCollectionView.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
             nutritionCollectionView.heightAnchor.constraint(equalToConstant: CGFloat(Int(ceil(Double(nutritients.count)/2.0))) * 64),
+            buttonsStackView.topAnchor.constraint(equalTo: !nutritionCollectionView.isHidden ? nutritionCollectionView.bottomAnchor : (!showMoreLessDescriptionButton.isHidden ? showMoreLessDescriptionButton.bottomAnchor : recipeNameLabel.bottomAnchor), constant: 8),
+            buttonsStackView.centerXAnchor.constraint(equalTo: mainContentView.centerXAnchor),
+            buttonsStackView.widthAnchor.constraint(equalTo: mainContentView.widthAnchor, multiplier: 0.8),
+            selectedButtonlabel.topAnchor.constraint(equalTo: buttonsStackView.topAnchor, constant: 1),
+            selectedButtonlabel.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor, constant: 1),
+            selectedButtonlabel.bottomAnchor.constraint(equalTo: buttonsStackView.bottomAnchor, constant: -1),
+            selectedButtonlabel.widthAnchor.constraint(equalTo: instructionsButton.widthAnchor, constant: -2),
+            sv.topAnchor.constraint(equalTo: buttonsStackView.bottomAnchor, constant: 16),
+            sv.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            sv.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
+            sv.bottomAnchor.constraint(equalTo: mainContentView.bottomAnchor, constant: -16)
         ])
         
         let widthConstraint = NSLayoutConstraint(item: mainContentView, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: -32)
@@ -275,6 +361,32 @@ class RecipeDetailsViewController: UIViewController {
         }
         if let fats = recipe.nutrition?.fat {
             nutritients.append(.fats(fats))
+        }
+    }
+    
+    @objc func didTapIngredientsButton() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [weak self] in
+            var frame = (self?.ingredientsButton.frame)!
+            self?.selectedButtonlabel.frame = CGRect(x: frame.minX + 1, y: frame.minY + 1, width: frame.width - 2, height: frame.height - 2)
+//            self?.scrollView.setContentOffset(CGPoint(x: 0, y: 0), animated: true)
+        } completion: { [weak self] completed in
+            if completed {
+                self?.ingredientsButton.setTitleColor(.white, for: .normal)
+                self?.instructionsButton.setTitleColor(.systemGray, for: .normal)
+            }
+        }
+    }
+    
+    @objc func didTapInstructionsButton() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [weak self] in
+            var frame = (self?.instructionsButton.frame)!
+            self?.selectedButtonlabel.frame = CGRect(x: frame.minX + 1, y: frame.minY + 1, width: frame.width - 2, height: frame.height - 2)
+//            self?.scrollView.setContentOffset(CGPoint(x: self?.frame.width ?? 0, y: 0), animated: true)
+        } completion: { [weak self] completed in
+            if completed {
+                self?.instructionsButton.setTitleColor(.white, for: .normal)
+                self?.ingredientsButton.setTitleColor(.systemGray, for: .normal)
+            }
         }
     }
 }
