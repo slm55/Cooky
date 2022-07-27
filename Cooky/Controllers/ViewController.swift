@@ -181,7 +181,7 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
         }
         cell.didSelect()
         } else {
-            let vc = RecipeViewController(recipe: recipes[indexPath.row])
+            let vc = RecipeDetailsViewController(recipe: recipes[indexPath.row])
             navigationController?.pushViewController(vc, animated: true)
         }
     }

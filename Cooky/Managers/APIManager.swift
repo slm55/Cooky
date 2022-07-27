@@ -12,7 +12,7 @@ final class APICaller {
     
     func getPopularRecipes(completion: @escaping (Result<[Recipe], Error>) -> Void) {
         let headers = [
-            "X-RapidAPI-Key": "7da2270e0cmshc887a4e83a72413p18d32ejsnb615cba0bfcd",
+            "X-RapidAPI-Key": "67aa47ee83mshde3a906b476fbb1p1c9d62jsn86a75b4e5569",
             "X-RapidAPI-Host": "tasty.p.rapidapi.com"
         ]
 
@@ -36,8 +36,6 @@ final class APICaller {
             do {
                 let recipes = try JSONDecoder().decode(Welcome.self, from: data!)
                 completion(.success(recipes.results))
-//                let dt = try JSONSerialization.jsonObject(with: data!, options: .fragmentsAllowed)
-//                print(dt)
             } catch {
                 completion(.failure(error))
             }

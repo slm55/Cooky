@@ -57,16 +57,10 @@ class InstructionsView: UIView {
             instructionsTableView.topAnchor.constraint(equalTo: instructionsTitleLabel.bottomAnchor, constant: 8),
             instructionsTableView.leadingAnchor.constraint(equalTo: leadingAnchor),
             instructionsTableView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            instructionsTableView.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 1)
+            instructionsTableView.heightAnchor.constraint(equalToConstant: instructionsTableView.contentSize.height)
         ]
         
         NSLayoutConstraint.activate(constraints)
-    }
-    
-    override func updateConstraints() {
-        instructionsTableView.heightAnchor.constraint(equalToConstant: instructionsTableView.contentSize.height).isActive = true
-        
-        super.updateConstraints()
     }
 }
 
