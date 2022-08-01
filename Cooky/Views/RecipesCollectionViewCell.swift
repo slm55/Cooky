@@ -67,7 +67,7 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         label.lineBreakMode = .byWordWrapping
-        label.numberOfLines = 0
+        label.numberOfLines = 3
         label.font = .systemFont(ofSize: 24, weight: .bold)
         return label
     }()
@@ -77,7 +77,7 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         label.textColor = .white
         label.translatesAutoresizingMaskIntoConstraints = false
         label.lineBreakMode = .byWordWrapping
-        label.numberOfLines = 0
+        label.numberOfLines = 1
         label.font = .systemFont(ofSize: 16)
         label.isHidden = true
         return label
@@ -87,17 +87,18 @@ class RecipesCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        addSubview(backgroundImageView)
+        contentView.frame = bounds
+        contentView.addSubview(backgroundImageView)
         
         let tintView = UIView()
         tintView.backgroundColor = UIColor(white: 0, alpha: 0.6)
-        tintView.frame = bounds
-        addSubview(tintView)
+        tintView.frame = contentView.bounds
+        contentView.addSubview(tintView)
         
-        sendSubviewToBack(backgroundImageView)
+        contentView.sendSubviewToBack(backgroundImageView)
         
-        addSubview(topLabelsStackView)
-        addSubview(bottomLabelsStackView)
+        contentView.addSubview(topLabelsStackView)
+        contentView.addSubview(bottomLabelsStackView)
         
         layer.cornerRadius = 16
         clipsToBounds = true
@@ -108,20 +109,24 @@ class RecipesCollectionViewCell: UICollectionViewCell {
     }
     
     override func layoutSubviews() {
+        
         backgroundImageView.frame = contentView.bounds
+        
         let constraints = [
-            topLabelsStackView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            topLabelsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            topLabelsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            bottomLabelsStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
-            bottomLabelsStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            bottomLabelsStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            topLabelsStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            topLabelsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            topLabelsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            bottomLabelsStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            bottomLabelsStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            bottomLabelsStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
         ]
         NSLayoutConstraint.activate(constraints)
     }
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        recipeCreditsLabel.text = nil
+        recipeRatingLabel.text = nil
         recipeNameLabel.text = nil
         recipeDurationLabel.text = nil
         backgroundImageView.image = nil

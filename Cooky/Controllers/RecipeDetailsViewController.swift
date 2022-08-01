@@ -6,10 +6,14 @@
 //
 
 import UIKit
+import AVFoundation
+import AVKit
 
 class RecipeDetailsViewController: UIViewController {
     private let recipe: Recipe
     private var nutritients = [Nutritient]()
+    private let initialFavoriteStatus: Bool
+    private var isFavorite: Bool
     
     private let recipeImageView: UIImageView = {
         let imageView = UIImageView()
@@ -18,6 +22,13 @@ class RecipeDetailsViewController: UIViewController {
         imageView.layer.cornerRadius = 16
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
+    }()
+    
+    private let playButton: UIButton = {
+        let button = UIButton()
+        button.setBackgroundImage(UIImage(systemName: "play.circle.fill")?.withTintColor(.blue), for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
     private let topLabelsStackView: UIStackView = {
@@ -67,7 +78,7 @@ class RecipeDetailsViewController: UIViewController {
         textView.isPagingEnabled = false
         textView.isEditable = false
         textView.isUserInteractionEnabled = false
-        textView.textContainer.maximumNumberOfLines = 2
+        textView.textContainer.maximumNumberOfLines = 1
         textView.font = .systemFont(ofSize: 16)
         textView.translatesAutoresizingMaskIntoConstraints = false
         textView.textContainerInset = .zero
@@ -101,47 +112,53 @@ class RecipeDetailsViewController: UIViewController {
         return collectionView
     }()
     
-    private let buttonsStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.distribution = .fillEqually
-        stackView.backgroundColor = .systemGray5
-        stackView.layer.cornerRadius = 8
-        stackView.clipsToBounds = true
-        return stackView
-    }()
-    
-    private let ingredientsButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Ingredients", for: .normal)
-        button.heightAnchor.constraint(equalToConstant: button.titleLabel!.frame.height + 16).isActive = true
-        button.layer.cornerRadius = 8
-        button.clipsToBounds = true
-        return button
-    }()
-    
-    private let instructionsButton: UIButton = {
-        let button = UIButton()
-        button.setTitle("Instructions", for: .normal)
-        button.heightAnchor.constraint(equalToConstant: button.titleLabel!.frame.height + 16).isActive = true
-        button.layer.cornerRadius = 8
-        button.clipsToBounds = true
-        button.setTitleColor(.black, for: .normal)
-        return button
-    }()
-    
-    private let selectedButtonlabel: UILabel = {
+    private let ingredientsTitleLabel: UILabel = {
         let label = UILabel()
-        label.backgroundColor = .systemGreen
-        label.layer.cornerRadius = 8
+        label.text = "Ingredients"
+        label.font = .systemFont(ofSize: 24, weight: .bold)
+        label.textColor = .systemGreen
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.clipsToBounds = true
         return label
+    }()
+    
+    private let numberOfItemsLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16)
+        label.textColor = .systemGreen
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let instructionsTitleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Instructions"
+        label.font = .systemFont(ofSize: 24, weight: .bold)
+        label.textColor = .systemGreen
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    
+    private let ingredientsStackView: UIStackView = {
+        let sv = UIStackView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        sv.axis = .vertical
+        sv.spacing = 16
+        return sv
+    }()
+    
+    private let instructionsStackView: UIStackView = {
+        let sv = UIStackView()
+        sv.translatesAutoresizingMaskIntoConstraints = false
+        sv.axis = .vertical
+        sv.spacing = 16
+        return sv
     }()
     
     init(recipe: Recipe){
         self.recipe = recipe
+        self.initialFavoriteStatus = PersistenceManager.shared.isFavoriteRecipe(recipe: recipe)
+        self.isFavorite = PersistenceManager.shared.isFavoriteRecipe(recipe: recipe)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -152,7 +169,11 @@ class RecipeDetailsViewController: UIViewController {
     override func loadView() {
         super.loadView()
         
-        view.backgroundColor = .white
+        if let url = URL(string: recipe.thumbnailURL) {
+            recipeImageView.load(url: url)
+        }
+        
+        view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
         
         title = "Recipe"
         navigationItem.titleView?.tintColor = .black
@@ -160,19 +181,29 @@ class RecipeDetailsViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(didTapBackButton))
         navigationItem.leftBarButtonItem?.tintColor = .black
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+        if isFavorite {
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         navigationItem.rightBarButtonItem?.tintColor = .black
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+            navigationItem.rightBarButtonItem?.tintColor = .black
+        }
         
-        navigationController?.navigationBar.backgroundColor = .white
         
         let mainContentView = UIView()
-        mainContentView.backgroundColor = .red
         mainContentView.translatesAutoresizingMaskIntoConstraints = false
         
-        if let url = URL(string: recipe.thumbnailURL) {
-            recipeImageView.load(url: url)
-        }
         mainContentView.addSubview(recipeImageView)
+        
+        if let videoURL = recipe.videoURL {
+            recipeImageView.addSubview(playButton)
+            playButton.addTarget(self, action: #selector(didTapPlay), for: .touchUpInside)
+            mainContentView.addSubview(playButton)
+            playButton.centerXAnchor.constraint(equalTo: recipeImageView.centerXAnchor).isActive = true
+            playButton.centerYAnchor.constraint(equalTo: recipeImageView.centerYAnchor).isActive = true
+            playButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
+            playButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        }
         
         if let credits = recipe.credits.first {
             recipeCreditsLabel.text = credits.name
@@ -224,48 +255,23 @@ class RecipeDetailsViewController: UIViewController {
         mainContentView.addSubview(showMoreLessDescriptionButton)
         showMoreLessDescriptionButton.addTarget(self, action: #selector(didTapShowMoreLessDescriptionButton), for: .touchUpInside)
         
-        
         setNutritients()
         
         mainContentView.addSubview(nutritionCollectionView)
         nutritionCollectionView.delegate = self
         nutritionCollectionView.dataSource = self
         
-        mainContentView.addSubview(buttonsStackView)
-        buttonsStackView.addSubview(selectedButtonlabel)
-        buttonsStackView.addArrangedSubview(ingredientsButton)
-        buttonsStackView.addArrangedSubview(instructionsButton)
+        mainContentView.addSubview(ingredientsTitleLabel)
+        mainContentView.addSubview(numberOfItemsLabel)
+        numberOfItemsLabel.text = "\(recipe.sections?[0].components!.count ?? 0) items"
         
-        ingredientsButton.addTarget(self, action: #selector(didTapIngredientsButton), for: .touchUpInside)
-        instructionsButton.addTarget(self, action: #selector(didTapInstructionsButton), for: .touchUpInside)
+        mainContentView.addSubview(instructionsTitleLabel)
         
+        setUpIngredientsStackView()
+        mainContentView.addSubview(ingredientsStackView)
         
-        let sv = UIScrollView()
-        sv.translatesAutoresizingMaskIntoConstraints = false
-        
-        let someView = UIView()
-        someView.translatesAutoresizingMaskIntoConstraints = false
-        someView.backgroundColor = .systemYellow
-        
-        sv.addSubview(someView)
-        
-        NSLayoutConstraint.activate([
-            someView.topAnchor.constraint(equalTo: sv.topAnchor),
-            someView.leadingAnchor.constraint(equalTo: sv.leadingAnchor),
-            someView.trailingAnchor.constraint(equalTo: sv.trailingAnchor),
-            someView.widthAnchor.constraint(equalTo: sv.widthAnchor),
-            someView.bottomAnchor.constraint(equalTo: sv.bottomAnchor),
-            someView.heightAnchor.constraint(equalToConstant: 1500)
-        ])
-        
-        let widthCon = NSLayoutConstraint(item: someView, attribute: .width, relatedBy: .equal, toItem: sv, attribute: .width, multiplier: 1.0, constant: 0)
-        widthCon.isActive = true
-        
-        let heightCon = NSLayoutConstraint(item: someView, attribute: .height, relatedBy: .equal, toItem: sv, attribute: .height, multiplier: 1.0, constant: 0)
-        heightCon.isActive = true
-        heightCon.priority = .defaultLow
-        
-        mainContentView.addSubview(sv)
+        setUpInstructionsStackView()
+        mainContentView.addSubview(instructionsStackView)
         
         let scrollView = UIScrollView()
         scrollView.backgroundColor = .white
@@ -302,17 +308,19 @@ class RecipeDetailsViewController: UIViewController {
             nutritionCollectionView.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
             nutritionCollectionView.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
             nutritionCollectionView.heightAnchor.constraint(equalToConstant: CGFloat(Int(ceil(Double(nutritients.count)/2.0))) * 64),
-            buttonsStackView.topAnchor.constraint(equalTo: !nutritionCollectionView.isHidden ? nutritionCollectionView.bottomAnchor : (!showMoreLessDescriptionButton.isHidden ? showMoreLessDescriptionButton.bottomAnchor : recipeNameLabel.bottomAnchor), constant: 8),
-            buttonsStackView.centerXAnchor.constraint(equalTo: mainContentView.centerXAnchor),
-            buttonsStackView.widthAnchor.constraint(equalTo: mainContentView.widthAnchor, multiplier: 0.8),
-            selectedButtonlabel.topAnchor.constraint(equalTo: buttonsStackView.topAnchor, constant: 1),
-            selectedButtonlabel.leadingAnchor.constraint(equalTo: buttonsStackView.leadingAnchor, constant: 1),
-            selectedButtonlabel.bottomAnchor.constraint(equalTo: buttonsStackView.bottomAnchor, constant: -1),
-            selectedButtonlabel.widthAnchor.constraint(equalTo: instructionsButton.widthAnchor, constant: -2),
-            sv.topAnchor.constraint(equalTo: buttonsStackView.bottomAnchor, constant: 16),
-            sv.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
-            sv.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
-            sv.bottomAnchor.constraint(equalTo: mainContentView.bottomAnchor, constant: -16)
+            ingredientsTitleLabel.topAnchor.constraint(equalTo: nutritionCollectionView.bottomAnchor, constant: 8),
+            ingredientsTitleLabel.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            numberOfItemsLabel.topAnchor.constraint(equalTo: ingredientsTitleLabel.bottomAnchor, constant: 8),
+            numberOfItemsLabel.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            ingredientsStackView.topAnchor.constraint(equalTo: numberOfItemsLabel.bottomAnchor, constant: 8),
+            ingredientsStackView.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            ingredientsStackView.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
+            instructionsTitleLabel.topAnchor.constraint(equalTo: ingredientsStackView.bottomAnchor, constant: 8),
+            instructionsTitleLabel.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            instructionsStackView.topAnchor.constraint(equalTo: instructionsTitleLabel.bottomAnchor, constant: 8),
+            instructionsStackView.leadingAnchor.constraint(equalTo: mainContentView.leadingAnchor),
+            instructionsStackView.trailingAnchor.constraint(equalTo: mainContentView.trailingAnchor),
+            instructionsStackView.bottomAnchor.constraint(equalTo: mainContentView.bottomAnchor)
         ])
         
         let widthConstraint = NSLayoutConstraint(item: mainContentView, attribute: .width, relatedBy: .equal, toItem: view, attribute: .width, multiplier: 1.0, constant: -32)
@@ -328,6 +336,25 @@ class RecipeDetailsViewController: UIViewController {
         super.viewDidLoad()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        tabBarController?.tabBar.isHidden = true
+        navigationController?.navigationBar.prefersLargeTitles = false
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        tabBarController?.tabBar.isHidden = false
+        navigationController?.navigationBar.prefersLargeTitles = true
+        if isFavorite != initialFavoriteStatus {
+            if isFavorite {
+                PersistenceManager.shared.addFavoriteRecipe(recipe: recipe)
+            } else {
+                PersistenceManager.shared.deleteFavoriteRecipe(recipe: recipe)
+            }
+        }
+    }
+    
     @objc
     private func didTapBackButton() {
         navigationController?.popViewController(animated: true)
@@ -335,7 +362,27 @@ class RecipeDetailsViewController: UIViewController {
     
     @objc
     private func didTapFavoriteButton() {
+        isFavorite.toggle()
+        if isFavorite {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+        } else {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+        }
     }
+    
+    @objc private func didTapPlay () {
+        if let urlString = recipe.videoURL {
+        if let url = URL(string: urlString) {
+            let player = AVPlayer(url: url)
+            let vc = AVPlayerViewController()
+            vc.player = player
+            present(vc, animated: true) {
+                player.play()
+            }
+        }
+        }
+    }
+    
     
     @objc func didTapShowMoreLessDescriptionButton() {
         if showMoreLessDescriptionButton.title(for: .normal) == "more" {
@@ -343,7 +390,7 @@ class RecipeDetailsViewController: UIViewController {
         recipeDescriptionTextView.invalidateIntrinsicContentSize()
             showMoreLessDescriptionButton.setTitle("less", for: .normal)
         } else {
-            recipeDescriptionTextView.textContainer.maximumNumberOfLines = 2
+            recipeDescriptionTextView.textContainer.maximumNumberOfLines = 1
             recipeDescriptionTextView.invalidateIntrinsicContentSize()
             showMoreLessDescriptionButton.setTitle("more", for: .normal)
         }
@@ -364,31 +411,50 @@ class RecipeDetailsViewController: UIViewController {
         }
     }
     
-    @objc func didTapIngredientsButton() {
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [weak self] in
-            var frame = (self?.ingredientsButton.frame)!
-            self?.selectedButtonlabel.frame = CGRect(x: frame.minX + 1, y: frame.minY + 1, width: frame.width - 2, height: frame.height - 2)
-//            self?.scrollView.setContentOffset(CGPoint(x: 0, y: 0), animated: true)
-        } completion: { [weak self] completed in
-            if completed {
-                self?.ingredientsButton.setTitleColor(.white, for: .normal)
-                self?.instructionsButton.setTitleColor(.systemGray, for: .normal)
+    func setUpIngredientsStackView() {
+        guard recipe.sections != nil else {
+            return
+        }
+        for s in recipe.sections! {
+            let innerStackView = UIStackView()
+            innerStackView.spacing = 8
+            innerStackView.axis = .vertical
+            
+            if let name = s.name {
+                let titleLabel = UILabel()
+                titleLabel.font = .systemFont(ofSize: 20)
+                titleLabel.text = name
+                innerStackView.addArrangedSubview(titleLabel)
             }
+            
+            for i in s.components! {
+                let label = UILabel(frame: CGRect(x: 0, y: 0, width: view.frame.width - 32, height: 0))
+                label.numberOfLines = 0
+                label.font = .systemFont(ofSize: 16)
+                label.lineBreakMode = .byWordWrapping
+                label.text = i.rawText
+                label.sizeToFit()
+                innerStackView.addArrangedSubview(label)
+            }
+            ingredientsStackView.addArrangedSubview(innerStackView)
         }
     }
     
-    @objc func didTapInstructionsButton() {
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) { [weak self] in
-            var frame = (self?.instructionsButton.frame)!
-            self?.selectedButtonlabel.frame = CGRect(x: frame.minX + 1, y: frame.minY + 1, width: frame.width - 2, height: frame.height - 2)
-//            self?.scrollView.setContentOffset(CGPoint(x: self?.frame.width ?? 0, y: 0), animated: true)
-        } completion: { [weak self] completed in
-            if completed {
-                self?.instructionsButton.setTitleColor(.white, for: .normal)
-                self?.ingredientsButton.setTitleColor(.systemGray, for: .normal)
-            }
+    func setUpInstructionsStackView() {
+        guard recipe.instructions != nil else {
+            return
+        }
+        for i in recipe.instructions! {
+            let label = UILabel(frame: CGRect(x: 0, y: 0, width: view.frame.width - 32, height: 0))
+            label.numberOfLines = 0
+            label.font = .systemFont(ofSize: 16)
+            label.lineBreakMode = .byWordWrapping
+            label.text = i.displayText
+            label.sizeToFit()
+            instructionsStackView.addArrangedSubview(label)
         }
     }
+    
 }
 
 extension RecipeDetailsViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
