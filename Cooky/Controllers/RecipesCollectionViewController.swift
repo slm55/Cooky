@@ -131,6 +131,7 @@ class RecipesCollectionViewController: UIPageViewController {
         } else {
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         }
+        navigationItem.rightBarButtonItem?.tintColor = .accentGreen
     }
     
 }

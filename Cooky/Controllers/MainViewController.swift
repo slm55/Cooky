@@ -84,7 +84,6 @@ class MainViewController: UIViewController {
     
     private func setUpSearchController(){
         navigationItem.searchController = searchController
-        searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
     }
     
@@ -265,31 +264,7 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
 }
 
 // MARK: - Search
-extension MainViewController: UISearchResultsUpdating, UISearchBarDelegate {
-    func updateSearchResults(for searchController: UISearchController) {
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let resultsController = searchController.searchResultsController as? SearchResultsViewController,
-              let query = searchBar.text,
-              !query.trimmingCharacters(in: .whitespaces).isEmpty else {
-                  return
-              }
-        resultsController.delegate = self
-        
-        
-        APICaller.shared.search(with: query) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let results):
-                    resultsController.update(with: results)
-                case .failure(let error):
-                    print(error.localizedDescription)
-                }
-            }
-        }
-    }
-    
+extension MainViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         guard let resultsController = searchController.searchResultsController as? SearchResultsViewController,
               let query = searchBar.text,
