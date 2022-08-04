@@ -53,6 +53,8 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         label.text = "No results found"
         label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
         label.isHidden = true
+        label.sizeToFit()
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
@@ -60,6 +62,7 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         super.viewDidLoad()
         view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
         setUpCollectionView()
+        setUpNoResultsLabel()
     }
     
     func setUpCollectionView(){
@@ -70,12 +73,23 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         collectionView.keyboardDismissMode = .onDrag
         collectionView.frame = view.bounds
     }
+    
+    func setUpNoResultsLabel(){
+        view.addSubview(noResultsLabel)
+        
+        let constraints = [
+            noResultsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noResultsLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+    }
 
     func update(with results: [Recipe]) {
         searchResults = results
         collectionView.reloadData()
         collectionView.isHidden = results.isEmpty
-        noResultsLabel.isHidden = results.isEmpty
+        noResultsLabel.isHidden = !results.isEmpty
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -10,7 +10,7 @@ import Foundation
 final class APICaller {
     static let shared = APICaller()
     private enum Constants: String {
-        case APIKey = "398f2f7e17mshd890c0113107a90p1f03e9jsnb3332e121a56"
+        case APIKey = "7e7fbcd509mshe800b28e9a6b988p17f7b1jsn85af606af486"
         case APIHost = "tasty.p.rapidapi.com"
     }
     
@@ -75,9 +75,6 @@ final class APICaller {
             }
             
             do {
-//                let dt = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
-//                print(category)
-//                print(dt)
                 let response = try JSONDecoder().decode(Welcome.self, from: data!)
                 completion(.success(response.results))
             } catch {
