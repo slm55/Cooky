@@ -7,12 +7,6 @@
 
 import UIKit
 
-struct FavoriteRecipesTableViewCellViewModel {
-    var foodName: String
-    var cookingDuration: Int?
-    var imageURL: String
-}
-
 class FavoriteRecipesTableViewCell: UITableViewCell {
     static let identfier = "FavoriteRecipesTableViewCell"
 

@@ -41,7 +41,7 @@ final class APICaller {
             }
             
             do {
-                let recipes = try JSONDecoder().decode(Welcome.self, from: data!)
+                let recipes = try JSONDecoder().decode(SearchResponse.self, from: data!)
                 completion(.success(recipes.results))
             } catch {
                 completion(.failure(error))
@@ -75,7 +75,7 @@ final class APICaller {
             }
             
             do {
-                let response = try JSONDecoder().decode(Welcome.self, from: data!)
+                let response = try JSONDecoder().decode(SearchResponse.self, from: data!)
                 completion(.success(response.results))
             } catch {
                 completion(.failure(error))

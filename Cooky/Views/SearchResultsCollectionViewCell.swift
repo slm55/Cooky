@@ -7,12 +7,6 @@
 
 import UIKit
 
-struct SearchResultsCollectionViewCellViewModel {
-    var foodName: String
-    var cookingDuration: Int?
-    var imageURL: String
-}
-
 class SearchResultsCollectionViewCell: UICollectionViewCell {
     static let identifier = "SearchResultsCollectionViewCell"
     

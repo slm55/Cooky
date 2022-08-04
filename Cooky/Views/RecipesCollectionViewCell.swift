@@ -7,15 +7,6 @@
 
 import UIKit
 
-struct RecipesCollectionViewCellViewModel {
-    var credits: Credit?
-    var rating: UserRatings?
-    var foodName: String
-    var cookingDuration: Int?
-    var imageURL: String
-}
-
-
 class RecipesCollectionViewCell: UICollectionViewCell {
     static let identifier = "RecipesCollectionViewCell"
     

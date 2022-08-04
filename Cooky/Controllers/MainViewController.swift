@@ -123,6 +123,7 @@ class MainViewController: UIViewController {
     func setUpSpinner(){
         view.addSubview(spinner)
         spinner.center = view.center
+        spinner.startAnimating()
     }
     
     func fetchData() {
