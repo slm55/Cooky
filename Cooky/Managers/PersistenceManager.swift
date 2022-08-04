@@ -12,7 +12,7 @@ class PersistenceManager {
     private(set) var favoriteRecipes = [Recipe]()
     
     private init(){
-        getFavoriteRecipes()
+         getFavoriteRecipes()
     }
     
     func getFavoriteRecipes(){
