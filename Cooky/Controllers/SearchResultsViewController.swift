@@ -14,21 +14,21 @@ protocol SearchResultsViewControllerDelegate: AnyObject {
 
 class SearchResultsViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     weak var delegate: SearchResultsViewControllerDelegate?
-
+    
     private var searchResults: [Recipe] = []
     
     private let collectionView: UICollectionView = UICollectionView(
         frame: .zero,
         collectionViewLayout: UICollectionViewCompositionalLayout(sectionProvider: { _, _ -> NSCollectionLayoutSection? in
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)))
-
+            
             item.contentInsets = NSDirectionalEdgeInsets(
                 top: 2,
                 leading: 7,
                 bottom: 2,
                 trailing: 7
             )
-
+            
             let group = NSCollectionLayoutGroup.horizontal(
                 layoutSize: NSCollectionLayoutSize(
                     widthDimension: .fractionalWidth(1),
@@ -36,14 +36,14 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
                 subitem: item,
                 count: 2
             )
-
+            
             group.contentInsets = NSDirectionalEdgeInsets(
                 top: 10,
                 leading: 0,
                 bottom: 10,
                 trailing: 0
             )
-
+            
             return NSCollectionLayoutSection(group: group)
         })
     )
@@ -51,21 +51,21 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
     private let noResultsLabel: UILabel = {
         let label = UILabel()
         label.text = "No results found"
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.isHidden = true
         label.sizeToFit()
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
+        view.backgroundColor = .systemBackground
         setUpCollectionView()
         setUpNoResultsLabel()
     }
     
-    func setUpCollectionView(){
+    private func setUpCollectionView(){
         view.addSubview(collectionView)
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -74,7 +74,7 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         collectionView.frame = view.bounds
     }
     
-    func setUpNoResultsLabel(){
+    private func setUpNoResultsLabel(){
         view.addSubview(noResultsLabel)
         
         let constraints = [
@@ -84,7 +84,7 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         
         NSLayoutConstraint.activate(constraints)
     }
-
+    
     func update(with results: [Recipe]) {
         searchResults = results
         collectionView.reloadData()
@@ -107,10 +107,10 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
             return UICollectionViewCell()
         }
         let recipe = searchResults[indexPath.row]
-    let foodName = recipe.name
-    let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
-    let imageURL = recipe.thumbnailURL
-    cell.configure(with: SearchResultsCollectionViewCellViewModel(foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
+        let foodName = recipe.name
+        let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
+        let imageURL = recipe.thumbnailURL
+        cell.configure(with: SearchResultsCollectionViewCellViewModel(foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
         return cell
     }
     

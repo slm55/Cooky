@@ -29,7 +29,9 @@ class RecipesCollectionViewController: UIPageViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
+        
+        setUpNavigationController()
         
         title = "Recipes Collection"
         
@@ -46,6 +48,11 @@ class RecipesCollectionViewController: UIPageViewController {
         navigationController?.navigationBar.prefersLargeTitles = false
     }
     
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        tabBarController?.tabBar.isHidden = true
+    }
+    
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidAppear(animated)
         tabBarController?.tabBar.isHidden = false
@@ -59,42 +66,50 @@ class RecipesCollectionViewController: UIPageViewController {
         }
     }
     
-    func setUpNavigationItems(){
+    private func setUpNavigationController(){
+        navigationController?.navigationBar.backgroundColor = .systemBackground
+        let statusBarFrame = UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame
+        let statusBarView = UIView(frame: statusBarFrame ?? CGRect(x: 0, y: 0, width: 0, height: 0))
+        self.view.addSubview(statusBarView)
+        statusBarView.backgroundColor = .systemBackground
+    }
+    
+    private func setUpNavigationItems(){
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(didTapBackButton))
-        navigationItem.leftBarButtonItem?.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        navigationItem.leftBarButtonItem?.tintColor = .accentGreen
         
         if isFavorite {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         } else {
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         }
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        navigationItem.rightBarButtonItem?.tintColor = .accentGreen
     }
     
-    func setUpController() {
+    private func setUpController() {
         dataSource = self
         delegate = self
         
         pageControl.addTarget(self, action: #selector(pageControlTapped(_:)), for: .valueChanged)
-
+        
         
         for recipe in recipe.recipes! {
             pages.append(RecipeDetailsViewController(recipe: recipe))
         }
-
+        
         setViewControllers([pages[initialPage]], direction: .forward, animated: true, completion: nil)
     }
     
-    func setUpPageControl() {
+    private func setUpPageControl() {
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.currentPageIndicatorTintColor = .black
+        pageControl.currentPageIndicatorTintColor = .accentGreen
         pageControl.pageIndicatorTintColor = .systemGray2
         pageControl.numberOfPages = pages.count
         pageControl.currentPage = initialPage
         view.addSubview(pageControl)
     }
     
-    func setConstraints() {
+    private func setConstraints() {
         let constraints = [
             pageControl.widthAnchor.constraint(equalTo: view.widthAnchor),
             pageControl.heightAnchor.constraint(equalToConstant: 20),
@@ -117,13 +132,13 @@ class RecipesCollectionViewController: UIPageViewController {
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         }
     }
-
+    
 }
 
 
 // MARK: - Actions
 extension RecipesCollectionViewController {
-    @objc func pageControlTapped(_ sender: UIPageControl) {
+    @objc private func pageControlTapped(_ sender: UIPageControl) {
         setViewControllers([pages[sender.currentPage]], direction: .forward, animated: false, completion: nil)
     }
 }
@@ -145,7 +160,7 @@ extension RecipesCollectionViewController: UIPageViewControllerDataSource {
     func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
         
         guard let currentIndex = pages.firstIndex(of: viewController as! RecipeDetailsViewController) else { return nil }
-
+        
         if currentIndex < pages.count - 1 {
             return pages[currentIndex + 1]
         } else {

@@ -138,8 +138,8 @@ class RecipesCollectionViewCell: UICollectionViewCell {
             recipeCreditsLabel.isHidden = false
         }
         
-        if let ratingScore = recipe.rating?.score {
-            recipeRatingLabel.attributedText = getAttributedRatingString(with: ratingScore)
+        if let ratingScore = recipe.rating?.score, ratingScore > 0 {
+            recipeRatingLabel.setAttributedRatingString(for: ratingScore, with: .white)
             recipeRatingLabel.isHidden = false
         }
         
@@ -148,7 +148,7 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         
         
         if let cookingDuration = recipe.cookingDuration {
-            recipeDurationLabel.attributedText = getAttributedRecipeDurationString(with: cookingDuration)
+            recipeDurationLabel.setAttributedRecipeDurationString(for: cookingDuration, with: .white)
             recipeDurationLabel.isHidden = false
         }
         
@@ -156,42 +156,5 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         
         bottomLabelsStackView.addArrangedSubview(recipeNameLabel)
         bottomLabelsStackView.addArrangedSubview(recipeDurationLabel)
-    }
-    
-    func getAttributedRatingString(with rating: Double) -> NSMutableAttributedString {
-        let twoDecimalRating = String(format: "  %.1f", rating * 5.0)
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(systemName: "star")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString(string: "")
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: twoDecimalRating))
-        return fullString
-    }
-    
-    func getAttributedRecipeDurationString(with time: Int) -> NSMutableAttributedString {
-        let filteredTimeString = time < 120 ? "  \(time) mins" : "  \(time/60) hrs"
-        
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString(string: "")
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: filteredTimeString))
-        return fullString
-    }
-}
-
-extension UIImageView {
-    func load(url: URL) {
-        DispatchQueue.global().async { [weak self] in
-            if let data = try? Data(contentsOf: url) {
-                if let image = UIImage(data: data) {
-                    DispatchQueue.main.async {
-                        self?.image = image
-                    }
-                }
-            }
-        }
     }
 }

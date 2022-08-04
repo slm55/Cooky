@@ -89,11 +89,11 @@ class SearchResultsCollectionViewCell: UICollectionViewCell {
     
     func configure(with recipe: SearchResultsCollectionViewCellViewModel){
         if let url = URL(string: recipe.imageURL) {
-        backgroundImageView.load(url: url)
-    }
+            backgroundImageView.load(url: url)
+        }
         
         if let cookingDuration = recipe.cookingDuration {
-            recipeDurationLabel.attributedText = getAttributedRecipeDurationString(with: cookingDuration)
+            recipeDurationLabel.setAttributedRecipeDurationString(for: cookingDuration, with: .white)
             recipeDurationLabel.isHidden = false
             recipeDurationLabel.sizeToFit()
         }
@@ -102,18 +102,6 @@ class SearchResultsCollectionViewCell: UICollectionViewCell {
         recipeNameLabel.frame = CGRect(x: 0, y: 0, width: contentView.frame.width - 32, height: 0)
         recipeNameLabel.text = recipe.foodName
         recipeNameLabel.sizeToFit()
-    }
-    
-    func getAttributedRecipeDurationString(with time: Int) -> NSMutableAttributedString {
-        let filteredTimeString = time < 120 ? "  \(time) mins" : "  \(time/60) hrs"
-        
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString(string: "")
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: filteredTimeString))
-        return fullString
     }
 }
 

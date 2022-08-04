@@ -11,23 +11,46 @@ class FavoriteRecipesViewController: UIViewController {
     private var favoriteRecipes = [Recipe]()
     
     private let tableView = UITableView()
-
+    
+    private let noRecipesLabel: UILabel = {
+        let label = UILabel()
+        label.text = "You do not have favorite recipes yet"
+        label.textColor = .accentGreen
+        label.isHidden = true
+        label.sizeToFit()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
+        view.backgroundColor = .systemBackground
         title = "Favorite recipes"
         
         setUpTableView()
+        setUpNoRecipesLabel()
+    }
+    
+    private func setUpNoRecipesLabel(){
+        view.addSubview(noRecipesLabel)
+        
+        let constraints = [
+            noRecipesLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            noRecipesLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         favoriteRecipes = PersistenceManager.shared.favoriteRecipes
         tableView.reloadData()
+        noRecipesLabel.isHidden = !favoriteRecipes.isEmpty
     }
     
-    func setUpTableView(){
+    private func setUpTableView(){
         view.addSubview(tableView)
         tableView.frame = view.bounds
         tableView.delegate = self
@@ -49,13 +72,13 @@ extension FavoriteRecipesViewController: UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let recipe = favoriteRecipes[indexPath.row]
-            if recipe.recipes != nil {
-                let vc = RecipesCollectionViewController(recipe: recipe)
-                navigationController?.pushViewController(vc, animated: true)
-            } else {
-                let vc = RecipeDetailsViewController(recipe: recipe)
-                navigationController?.pushViewController(vc, animated: true)
-            }
+        if recipe.recipes != nil {
+            let vc = RecipesCollectionViewController(recipe: recipe)
+            navigationController?.pushViewController(vc, animated: true)
+        } else {
+            let vc = RecipeDetailsViewController(recipe: recipe)
+            navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

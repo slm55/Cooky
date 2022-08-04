@@ -11,7 +11,7 @@ import AVKit
 
 class RecipeDetailsViewController: UIViewController {
     private let recipe: Recipe
-    private var nutritients = [Nutritient]()
+    private var nutritients = [NutritientViewModel]()
     private let initialFavoriteStatus: Bool
     private var isFavorite: Bool
     
@@ -38,7 +38,7 @@ class RecipeDetailsViewController: UIViewController {
     
     private let playButton: UIButton = {
         let button = UIButton()
-        button.setBackgroundImage(UIImage(systemName: "play.circle.fill")?.withTintColor(.blue), for: .normal)
+        button.setBackgroundImage(UIImage(systemName: "play.circle.fill")?.withTintColor(.accentGreen), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -55,7 +55,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.isHidden = true
         return label
     }()
@@ -64,7 +64,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.isHidden = true
         return label
     }()
@@ -73,7 +73,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 16)
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.isHidden = true
         return label
     }()
@@ -105,10 +105,9 @@ class RecipeDetailsViewController: UIViewController {
     private let showMoreLessDescriptionButton: UIButton = {
         let button = UIButton()
         button.setTitle("more", for: .normal)
-        button.setTitleColor(.link, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.isHidden = true
-        button.setTitleColor(UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1), for: .normal)
+        button.setTitleColor(.accentGreen, for: .normal)
         button.titleLabel?.font = .systemFont(ofSize: 16)
         button.titleLabel?.sizeToFit()
         button.heightAnchor.constraint(equalToConstant: button.titleLabel!.frame.height).isActive = true
@@ -132,7 +131,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.text = "Ingredients"
         label.font = .systemFont(ofSize: 24, weight: .bold)
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -141,7 +140,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16)
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         return label
     }()
     
@@ -149,7 +148,7 @@ class RecipeDetailsViewController: UIViewController {
         let label = UILabel()
         label.text = "Instructions"
         label.font = .systemFont(ofSize: 24, weight: .bold)
-        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.textColor = .accentGreen
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -185,11 +184,12 @@ class RecipeDetailsViewController: UIViewController {
     override func loadView() {
         super.loadView()
         
+        // start loading image
         if let url = URL(string: recipe.thumbnailURL) {
             recipeImageView.load(url: url)
         }
         
-        view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
+        view.backgroundColor = .systemBackground
         
         title = "Recipe"
         
@@ -262,31 +262,31 @@ class RecipeDetailsViewController: UIViewController {
         }
     }
     
-    func setUpNavigationItems(){
+    private func setUpNavigationItems(){
         navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(didTapBackButton))
-        navigationItem.leftBarButtonItem?.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        navigationItem.leftBarButtonItem?.tintColor = .accentGreen
         
         if isFavorite {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart.fill"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         } else {
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         }
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        navigationItem.rightBarButtonItem?.tintColor = .accentGreen
     }
     
-    func setUpTopLabelsStackView(){
+    private func setUpTopLabelsStackView(){
         if let credits = recipe.credits.first {
             recipeCreditsLabel.text = credits.name
             recipeCreditsLabel.isHidden = false
         }
         
         if let cookingDuration = recipe.totalTimeMinutes {
-            recipePrepTimeLabel.attributedText = getAttributedRecipeDurationString(with: cookingDuration)
+            recipePrepTimeLabel.setAttributedRecipeDurationString(for: cookingDuration, with: .accentGreen)
             recipePrepTimeLabel.isHidden = false
         }
         
         if let rating = recipe.userRatings?.score {
-            recipeRatingLabel.attributedText = getAttributedRatingString(with: rating)
+            recipeRatingLabel.setAttributedRatingString(for: rating, with: .accentGreen)
             recipeRatingLabel.isHidden = false
         }
         
@@ -296,7 +296,7 @@ class RecipeDetailsViewController: UIViewController {
         mainContentView.addSubview(topLabelsStackView)
     }
     
-    func setUpThumbnail(){
+    private func setUpThumbnail(){
         if recipe.videoURL != nil {
             recipeImageView.addSubview(playButton)
             playButton.addTarget(self, action: #selector(didTapPlay), for: .touchUpInside)
@@ -308,30 +308,7 @@ class RecipeDetailsViewController: UIViewController {
         }
     }
     
-    func getAttributedRecipeDurationString(with time: Int) -> NSMutableAttributedString {
-        let filteredTimeString = time < 120 ? "  \(time) mins" : "  \(time/60) hrs"
-        
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString(string: "")
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: filteredTimeString))
-        return fullString
-    }
-    
-    func getAttributedRatingString(with rating: Double) -> NSMutableAttributedString {
-        let twoDecimalRating = String(format: "  %.1f", rating * 5.0)
-        let imageAttachment = NSTextAttachment()
-        imageAttachment.image = UIImage(systemName: "star")?.withTintColor(.white)
-
-        let fullString = NSMutableAttributedString(string: "")
-        fullString.append(NSAttributedString(attachment: imageAttachment))
-        fullString.append(NSAttributedString(string: twoDecimalRating))
-        return fullString
-    }
-    
-    func setConstraints(){
+    private func setConstraints(){
         let consraints = [
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -401,7 +378,7 @@ class RecipeDetailsViewController: UIViewController {
         }
     }
     
-    func setUpIngredientsStackView() {
+    private func setUpIngredientsStackView() {
         guard recipe.sections != nil else {
             return
         }
@@ -434,7 +411,7 @@ class RecipeDetailsViewController: UIViewController {
         }
     }
     
-    func setUpInstructionsStackView() {
+    private func setUpInstructionsStackView() {
         guard recipe.instructions != nil else {
             return
         }
@@ -466,27 +443,29 @@ extension RecipeDetailsViewController {
         } else {
             navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "heart"), style: .plain, target: self, action: #selector(didTapFavoriteButton))
         }
-        navigationItem.rightBarButtonItem?.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        navigationItem.rightBarButtonItem?.tintColor = .accentGreen
     }
     
-    @objc private func didTapPlay () {
+    @objc
+    private func didTapPlay () {
         if let urlString = recipe.videoURL {
-        if let url = URL(string: urlString) {
-            let player = AVPlayer(url: url)
-            let vc = AVPlayerViewController()
-            vc.player = player
-            present(vc, animated: true) {
-                player.play()
+            if let url = URL(string: urlString) {
+                let player = AVPlayer(url: url)
+                let vc = AVPlayerViewController()
+                vc.player = player
+                present(vc, animated: true) {
+                    player.play()
+                }
             }
         }
-        }
     }
     
     
-    @objc func didTapShowMoreLessDescriptionButton() {
+    @objc
+    private func didTapShowMoreLessDescriptionButton() {
         if showMoreLessDescriptionButton.title(for: .normal) == "more" {
-        recipeDescriptionTextView.textContainer.maximumNumberOfLines = 0
-        recipeDescriptionTextView.invalidateIntrinsicContentSize()
+            recipeDescriptionTextView.textContainer.maximumNumberOfLines = 0
+            recipeDescriptionTextView.invalidateIntrinsicContentSize()
             showMoreLessDescriptionButton.setTitle("less", for: .normal)
         } else {
             recipeDescriptionTextView.textContainer.maximumNumberOfLines = 1

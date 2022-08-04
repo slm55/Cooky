@@ -7,13 +7,6 @@
 
 import UIKit
 
-enum Nutritient {
-    case carbs(Int)
-    case proteins(Int)
-    case calories(Int)
-    case fats(Int)
-}
-
 class NutritientsCollectionViewCell: UICollectionViewCell {
     static let identifier = "NutritientsCollectionViewCell"
     
@@ -21,7 +14,7 @@ class NutritientsCollectionViewCell: UICollectionViewCell {
         let button = UIButton()
         button.layer.cornerRadius = 8
         button.backgroundColor = .systemGray5
-        button.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        button.tintColor = .accentGreen
         return button
     }()
     
@@ -49,19 +42,19 @@ class NutritientsCollectionViewCell: UICollectionViewCell {
         label.frame = CGRect(x: button.frame.maxX + 8, y: 0, width: contentView.frame.width - label.frame.minY, height: contentView.frame.height)
     }
     
-    func configure(with nutritient: Nutritient) {
+    func configure(with nutritient: NutritientViewModel) {
         switch nutritient {
         case .carbs(let value):
             button.setImage(UIImage(systemName: "leaf"), for: .normal)
             label.text = "\(value)g carbs"
         case .proteins(let value):
-            button.setImage(UIImage(named: "avocado")?.withTintColor(UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)), for: .normal)
+            button.setImage(UIImage(named: "avocado")?.withTintColor(.accentGreen), for: .normal)
             label.text = "\(value)g proteins"
         case .calories(let value):
             button.setImage(UIImage(systemName: "flame"), for: .normal)
             label.text = "\(value) Kcal"
         case .fats(let value):
-            button.setImage(UIImage(named: "pizza")?.withTintColor(UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)), for: .normal)
+            button.setImage(UIImage(named: "pizza")?.withTintColor(.accentGreen), for: .normal)
             label.text = "\(value)g fats"
         }
     }

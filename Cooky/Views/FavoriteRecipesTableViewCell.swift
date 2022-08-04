@@ -9,41 +9,41 @@ import UIKit
 
 class FavoriteRecipesTableViewCell: UITableViewCell {
     static let identfier = "FavoriteRecipesTableViewCell"
-
+    
     private let label: UILabel = {
-            let label = UILabel()
-            label.numberOfLines = 3
-            label.translatesAutoresizingMaskIntoConstraints = false
-            return label
-        }()
-
-        private let iconImageView: UIImageView = {
-            let imageView = UIImageView()
-            imageView.layer.cornerRadius = 8
-            imageView.layer.masksToBounds = true
-            imageView.contentMode = .scaleAspectFill
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-            return imageView
-        }()
-
-        override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-            super.init(style: style, reuseIdentifier: reuseIdentifier)
-            
-            contentView.addSubview(label)
-            contentView.addSubview(iconImageView)
-            
-            setConstraints()
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError()
-        }
-
-        override func prepareForReuse() {
-            super.prepareForReuse()
-            iconImageView.image = nil
-            label.text = nil
-        }
+        let label = UILabel()
+        label.numberOfLines = 3
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let iconImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.layer.cornerRadius = 8
+        imageView.layer.masksToBounds = true
+        imageView.contentMode = .scaleAspectFill
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        
+        contentView.addSubview(label)
+        contentView.addSubview(iconImageView)
+        
+        setConstraints()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        iconImageView.image = nil
+        label.text = nil
+    }
     
     func setConstraints(){
         let constraints = [
@@ -59,11 +59,11 @@ class FavoriteRecipesTableViewCell: UITableViewCell {
         
         NSLayoutConstraint.activate(constraints)
     }
-
-        func configure(with viewModel: FavoriteRecipesTableViewCellViewModel) {
-            label.text = viewModel.foodName
-            if let url = URL(string: viewModel.imageURL) {
-                iconImageView.load(url: url)
-            }
+    
+    func configure(with viewModel: FavoriteRecipesTableViewCellViewModel) {
+        label.text = viewModel.foodName
+        if let url = URL(string: viewModel.imageURL) {
+            iconImageView.load(url: url)
         }
+    }
 }
