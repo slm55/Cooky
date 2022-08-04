@@ -7,6 +7,12 @@
 
 import UIKit
 
+struct FavoriteRecipesTableViewCellViewModel {
+    var foodName: String
+    var cookingDuration: Int?
+    var imageURL: String
+}
+
 class FavoriteRecipesTableViewCell: UITableViewCell {
     static let identfier = "FavoriteRecipesTableViewCell"
 
@@ -28,21 +34,11 @@ class FavoriteRecipesTableViewCell: UITableViewCell {
 
         override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
             super.init(style: style, reuseIdentifier: reuseIdentifier)
+            
             contentView.addSubview(label)
             contentView.addSubview(iconImageView)
             
-            let constraints = [
-                iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
-                iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
-                iconImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10),
-                iconImageView.widthAnchor.constraint(equalTo: iconImageView.heightAnchor),
-                label.topAnchor.constraint(equalTo: iconImageView.topAnchor),
-                label.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 10),
-                label.heightAnchor.constraint(equalTo: iconImageView.heightAnchor),
-                label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5)
-            ]
-            
-            NSLayoutConstraint.activate(constraints)
+            setConstraints()
         }
 
         required init?(coder: NSCoder) {
@@ -54,8 +50,23 @@ class FavoriteRecipesTableViewCell: UITableViewCell {
             iconImageView.image = nil
             label.text = nil
         }
+    
+    func setConstraints(){
+        let constraints = [
+            iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 5),
+            iconImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            iconImageView.heightAnchor.constraint(equalTo: contentView.heightAnchor, constant: -10),
+            iconImageView.widthAnchor.constraint(equalTo: iconImageView.heightAnchor),
+            label.topAnchor.constraint(equalTo: iconImageView.topAnchor),
+            label.leadingAnchor.constraint(equalTo: iconImageView.trailingAnchor, constant: 10),
+            label.heightAnchor.constraint(equalTo: iconImageView.heightAnchor),
+            label.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5)
+        ]
+        
+        NSLayoutConstraint.activate(constraints)
+    }
 
-        func configure(with viewModel: PopularRecipesCollectionViewCellViewModel) {
+        func configure(with viewModel: FavoriteRecipesTableViewCellViewModel) {
             label.text = viewModel.foodName
             if let url = URL(string: viewModel.imageURL) {
                 iconImageView.load(url: url)

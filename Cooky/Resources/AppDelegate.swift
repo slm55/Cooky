@@ -13,6 +13,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        let customNavBarAppearance = UINavigationBarAppearance()
+        let green = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        // Apply a red background.
+        customNavBarAppearance.configureWithOpaqueBackground()
+        customNavBarAppearance.backgroundColor = .white
+        
+        // Apply white colored normal and large titles.
+        customNavBarAppearance.titleTextAttributes = [.foregroundColor: green]
+        customNavBarAppearance.largeTitleTextAttributes = [.foregroundColor: green]
+        
+        // Apply white color to all the nav bar buttons.
+        let barButtonItemAppearance = UIBarButtonItemAppearance(style: .plain)
+        barButtonItemAppearance.normal.titleTextAttributes = [.foregroundColor: green]
+        customNavBarAppearance.buttonAppearance = barButtonItemAppearance
+        
+        UINavigationBar.appearance().standardAppearance = customNavBarAppearance
+        
         // Override point for customization after application launch.
 //        let appearance = UINavigationBarAppearance()
 //        appearance.configureWithOpaqueBackground()

@@ -8,12 +8,9 @@
 import UIKit
 
 class FavoriteRecipesViewController: UIViewController {
-    private let tableView: UITableView = {
-        let tableView = UITableView()
-        return tableView
-    }()
-    
     private var favoriteRecipes = [Recipe]()
+    
+    private let tableView = UITableView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,11 +18,7 @@ class FavoriteRecipesViewController: UIViewController {
         view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
         title = "Favorite recipes"
         
-        view.addSubview(tableView)
-        tableView.frame = view.bounds
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(FavoriteRecipesTableViewCell.self, forCellReuseIdentifier: FavoriteRecipesTableViewCell.identfier)
+        setUpTableView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -33,22 +26,30 @@ class FavoriteRecipesViewController: UIViewController {
         favoriteRecipes = PersistenceManager.shared.favoriteRecipes
         tableView.reloadData()
     }
+    
+    func setUpTableView(){
+        view.addSubview(tableView)
+        tableView.frame = view.bounds
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(FavoriteRecipesTableViewCell.self, forCellReuseIdentifier: FavoriteRecipesTableViewCell.identfier)
+    }
 }
 
 extension FavoriteRecipesViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let recipe = favoriteRecipes[indexPath.row]
         guard let cell = tableView.dequeueReusableCell(withIdentifier: FavoriteRecipesTableViewCell.identfier, for: indexPath) as? FavoriteRecipesTableViewCell else {
             return UITableViewCell()
         }
-        let recipe = favoriteRecipes[indexPath.row]
-        cell.configure(with: PopularRecipesCollectionViewCellViewModel(foodName: recipe.name, imageURL: recipe.thumbnailURL))
+        cell.configure(with: FavoriteRecipesTableViewCellViewModel(foodName: recipe.name, imageURL: recipe.thumbnailURL))
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let recipe = favoriteRecipes[indexPath.row]
-            if let recipes = recipe.recipes {
+            if recipe.recipes != nil {
                 let vc = RecipesCollectionViewController(recipe: recipe)
                 navigationController?.pushViewController(vc, animated: true)
             } else {

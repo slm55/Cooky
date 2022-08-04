@@ -47,20 +47,27 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
             return NSCollectionLayoutSection(group: group)
         })
     )
+    
+    private let noResultsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "No results found"
+        label.textColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.isHidden = true
+        return label
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
-        
+        setUpCollectionView()
+    }
+    
+    func setUpCollectionView(){
         view.addSubview(collectionView)
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(SearchResultsCollectionViewCell.self, forCellWithReuseIdentifier: SearchResultsCollectionViewCell.identifier)
         collectionView.keyboardDismissMode = .onDrag
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
         collectionView.frame = view.bounds
     }
 
@@ -68,6 +75,7 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
         searchResults = results
         collectionView.reloadData()
         collectionView.isHidden = results.isEmpty
+        noResultsLabel.isHidden = results.isEmpty
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -88,7 +96,7 @@ class SearchResultsViewController: UIViewController, UICollectionViewDataSource,
     let foodName = recipe.name
     let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
     let imageURL = recipe.thumbnailURL
-    cell.configure(with: PopularRecipesCollectionViewCellViewModel(foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
+    cell.configure(with: SearchResultsCollectionViewCellViewModel(foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
         return cell
     }
     

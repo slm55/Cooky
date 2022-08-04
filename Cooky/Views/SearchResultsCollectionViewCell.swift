@@ -7,6 +7,12 @@
 
 import UIKit
 
+struct SearchResultsCollectionViewCellViewModel {
+    var foodName: String
+    var cookingDuration: Int?
+    var imageURL: String
+}
+
 class SearchResultsCollectionViewCell: UICollectionViewCell {
     static let identifier = "SearchResultsCollectionViewCell"
     
@@ -40,32 +46,12 @@ class SearchResultsCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        contentView.frame = bounds
-        contentView.addSubview(backgroundImageView)
-        
-        let tintView = UIView()
-        tintView.backgroundColor = UIColor(white: 0, alpha: 0.6)
-        tintView.frame = contentView.bounds
-        contentView.addSubview(tintView)
-        
-        contentView.sendSubviewToBack(backgroundImageView)
-        
-        backgroundImageView.frame = contentView.bounds
+        setUpBackground()
         
         contentView.addSubview(recipeNameLabel)
         contentView.addSubview(recipeDurationLabel)
         
-        let constraints = [
-            recipeNameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            recipeNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            recipeNameLabel.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -32),
-            recipeDurationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            recipeDurationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
-            recipeDurationLabel.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -32)
-        ]
-        NSLayoutConstraint.activate(constraints)
-        
+        setConstraints()
         
         layer.cornerRadius = 16
         clipsToBounds = true
@@ -82,32 +68,58 @@ class SearchResultsCollectionViewCell: UICollectionViewCell {
         backgroundImageView.image = nil
     }
     
-    func configure(with recipe: PopularRecipesCollectionViewCellViewModel){
-        if let prepTime = recipe.cookingDuration {
-            let filteredTimeString = prepTime < 90 ? "  \(prepTime) mins" : "  \(prepTime/60) hrs"
-            
-            let imageAttachment = NSTextAttachment()
-            imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
-
-            let fullString = NSMutableAttributedString(string: "")
-            fullString.append(NSAttributedString(attachment: imageAttachment))
-            fullString.append(NSAttributedString(string: filteredTimeString))
-            
-            recipeDurationLabel.attributedText = fullString
+    func setUpBackground(){
+        contentView.addSubview(backgroundImageView)
+        
+        let tintView = UIView()
+        tintView.backgroundColor = UIColor(white: 0, alpha: 0.6)
+        tintView.frame = contentView.bounds
+        contentView.addSubview(tintView)
+        
+        contentView.sendSubviewToBack(backgroundImageView)
+        
+        backgroundImageView.frame = contentView.bounds
+    }
+    
+    func setConstraints(){
+        let constraints = [
+            recipeNameLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            recipeNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            recipeNameLabel.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -32),
+            recipeDurationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            recipeDurationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
+            recipeDurationLabel.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -32)
+        ]
+        NSLayoutConstraint.activate(constraints)
+    }
+    
+    func configure(with recipe: SearchResultsCollectionViewCellViewModel){
+        if let url = URL(string: recipe.imageURL) {
+        backgroundImageView.load(url: url)
+    }
+        
+        if let cookingDuration = recipe.cookingDuration {
+            recipeDurationLabel.attributedText = getAttributedRecipeDurationString(with: cookingDuration)
             recipeDurationLabel.isHidden = false
+            recipeDurationLabel.sizeToFit()
         }
         
         
         recipeNameLabel.frame = CGRect(x: 0, y: 0, width: contentView.frame.width - 32, height: 0)
         recipeNameLabel.text = recipe.foodName
-        
-        
-        recipeDurationLabel.sizeToFit()
         recipeNameLabel.sizeToFit()
+    }
+    
+    func getAttributedRecipeDurationString(with time: Int) -> NSMutableAttributedString {
+        let filteredTimeString = time < 120 ? "  \(time) mins" : "  \(time/60) hrs"
         
-        if let url = URL(string: recipe.imageURL) {
-            backgroundImageView.load(url: url)
-        }
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
+
+        let fullString = NSMutableAttributedString(string: "")
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        fullString.append(NSAttributedString(string: filteredTimeString))
+        return fullString
     }
 }
 

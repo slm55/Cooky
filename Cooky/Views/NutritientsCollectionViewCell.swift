@@ -21,6 +21,7 @@ class NutritientsCollectionViewCell: UICollectionViewCell {
         let button = UIButton()
         button.layer.cornerRadius = 8
         button.backgroundColor = .systemGray5
+        button.tintColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
         return button
     }()
     
@@ -32,8 +33,8 @@ class NutritientsCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        addSubview(button)
-        addSubview(label)
+        contentView.addSubview(button)
+        contentView.addSubview(label)
         
         clipsToBounds = true
     }
@@ -54,13 +55,13 @@ class NutritientsCollectionViewCell: UICollectionViewCell {
             button.setImage(UIImage(systemName: "leaf"), for: .normal)
             label.text = "\(value)g carbs"
         case .proteins(let value):
-            button.setImage(UIImage(named: "avocado")?.withTintColor(.link), for: .normal)
+            button.setImage(UIImage(named: "avocado")?.withTintColor(UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)), for: .normal)
             label.text = "\(value)g proteins"
         case .calories(let value):
             button.setImage(UIImage(systemName: "flame"), for: .normal)
             label.text = "\(value) Kcal"
         case .fats(let value):
-            button.setImage(UIImage(named: "pizza")?.withTintColor(.link), for: .normal)
+            button.setImage(UIImage(named: "pizza")?.withTintColor(UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)), for: .normal)
             label.text = "\(value)g fats"
         }
     }

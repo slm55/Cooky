@@ -7,9 +7,24 @@
 
 import UIKit
 
+enum Category: Int, CaseIterable {
+    case Popular = 0
+    case Breakfast
+    case Lunch
+    case Dinner
+    case Snacks
+    case Appetizers
+    case Desserts
+    case Drinks
+}
+
+struct RecipesCollectionViewSectionViewModel {
+    let category: Category
+    let recipes: [Recipe]
+}
+
 class MainViewController: UIViewController {
-    private let recipeCategories = ["Popular", "Breakfast", "Lunch", "Dinner", "Snacks", "Appetizers", "Desserts", "Drinks"]
-    private var sectionsDataSource = [[Recipe]].init(repeating: [], count: 8)
+    private var sectionsDataSource = [RecipesCollectionViewSectionViewModel]()
     
     let searchController: UISearchController = {
         let vc = UISearchController(searchResultsController: SearchResultsViewController())
@@ -27,7 +42,6 @@ class MainViewController: UIViewController {
             }
         )
         collectionView.register(RecipesCollectionViewCell.self, forCellWithReuseIdentifier: RecipesCollectionViewCell.identifier)
-        collectionView.register(PopularRecipesCollectionViewCell.self, forCellWithReuseIdentifier: PopularRecipesCollectionViewCell.identifier)
         collectionView.register(
                    TitleHeaderCollectionReusableView.self,
                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -43,43 +57,87 @@ class MainViewController: UIViewController {
         return spinner
     }()
     
+    let errorStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.isHidden = true
+        stackView.alignment = .center
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
+    private let retryButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Retry", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        button.layer.cornerRadius = 8
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .init(red: 251/255, green: 252/255, blue: 254/255, alpha: 1)
-        
         title = "Find best recipes"
-        
+        setUpSearchController()
+        setUpCollectionView()
+        setUpSpinner()
+        setUpErrorStackView()
+        fetchData()
+    }
+    
+    func setUpSearchController(){
         navigationItem.searchController = searchController
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
-        
+    }
+    
+    func setUpCollectionView(){
         view.addSubview(recipesCollectionView)
         recipesCollectionView.frame = view.bounds
         recipesCollectionView.delegate = self
         recipesCollectionView.dataSource = self
         recipesCollectionView.isHidden = true
+    }
+    
+    func setUpErrorStackView(){
+        let label = UILabel()
+        label.text = "Error"
+        label.textColor = UIColor.init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
+        label.sizeToFit()
         
+        errorStackView.addArrangedSubview(label)
+        errorStackView.addArrangedSubview(retryButton)
+        view.addSubview(errorStackView)
+        let constraints = [
+            retryButton.widthAnchor.constraint(equalToConstant: 64),
+            retryButton.heightAnchor.constraint(equalToConstant: 32),
+            errorStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            errorStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ]
+        NSLayoutConstraint.activate(constraints)
+        retryButton.addTarget(self, action: #selector(didTapRetryButton), for: .touchUpInside)
+    }
+    
+    func setUpSpinner(){
         view.addSubview(spinner)
         spinner.center = view.center
-        spinner.startAnimating()
-        
-        fetchData()
-        
     }
     
     func fetchData() {
         let group = DispatchGroup()
         
-        for i in 0...7 {
+        for (i, c) in Category.allCases.enumerated() {
             if i == 4 {
                 sleep(2)
             }
             group.enter()
-            APICaller.shared.getRecipesByCategory(category: recipeCategories[i]){
+            APICaller.shared.getRecipesByCategory(category: c){
                 [weak self] result in
                 switch result {
                 case .success(let recipes):
-                    self?.sectionsDataSource[i] = recipes.shuffled()
+                    self?.sectionsDataSource.append(RecipesCollectionViewSectionViewModel(category: c, recipes: recipes.shuffled()))
                 case .failure(let error):
                     print(error)
                 }
@@ -92,21 +150,37 @@ class MainViewController: UIViewController {
         }
         
         group.notify(queue: .main) { [weak self] in
-            self?.recipesCollectionView.reloadData()
-            self?.spinner.stopAnimating()
-            self?.recipesCollectionView.isHidden = false
+            self?.handleFetchedData()
         }
+    }
+    
+    func handleFetchedData(){
+        sectionsDataSource.sort(by: {$0.category.rawValue < $1.category.rawValue})
+        if sectionsDataSource.count < 4 {
+            errorStackView.isHidden = false
+        } else {
+            recipesCollectionView.reloadData()
+            recipesCollectionView.isHidden = false
+        }
+        spinner.stopAnimating()
+    }
+    
+    @objc func didTapRetryButton(){
+        errorStackView.isHidden = true
+        spinner.startAnimating()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: fetchData)
     }
 
 }
 
+// MARK: - CollectionView
 extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         
-        let recipe = sectionsDataSource[indexPath.section][indexPath.row]
-            if let recipes = recipe.recipes {
+        let recipe = sectionsDataSource[indexPath.section].recipes[indexPath.row]
+            if recipe.recipes != nil {
                 let vc = RecipesCollectionViewController(recipe: recipe)
                 navigationController?.pushViewController(vc, animated: true)
             } else {
@@ -116,53 +190,6 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
     }
     
     static func createSectionLayout(section: Int) -> NSCollectionLayoutSection {
-        
-        if section == 0 {
-            let supplementaryViews = [
-                NSCollectionLayoutBoundarySupplementaryItem(
-                    layoutSize: NSCollectionLayoutSize(
-                        widthDimension: .fractionalWidth(1),
-                        heightDimension: .absolute(50)
-                    ),
-                    elementKind: UICollectionView.elementKindSectionHeader,
-                    alignment: .top
-                )
-            ]
-                // Item
-                let item = NSCollectionLayoutItem(
-                    layoutSize: NSCollectionLayoutSize(
-                        widthDimension: .fractionalWidth(1.0),
-                        heightDimension: .fractionalHeight(1.0)
-                    )
-                )
-
-                item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
-
-                // Vertical group in horizontal group
-                let verticalGroup = NSCollectionLayoutGroup.vertical(
-                    layoutSize: NSCollectionLayoutSize(
-                        widthDimension: .fractionalWidth(1.0),
-                        heightDimension: .absolute(UIWindow().frame.width * 0.9 * 0.5 * 2)
-                    ),
-                    subitem: item,
-                    count: 2
-                )
-
-                let horizontalGroup = NSCollectionLayoutGroup.horizontal(
-                    layoutSize: NSCollectionLayoutSize(
-                        widthDimension: .fractionalWidth(0.9),
-                        heightDimension: .absolute(UIWindow().frame.width * 0.9 * 0.5 * 2)
-                    ),
-                    subitem: verticalGroup,
-                    count: 1
-                )
-
-                // Section
-                let section = NSCollectionLayoutSection(group: horizontalGroup)
-                section.orthogonalScrollingBehavior = .groupPaging
-                section.boundarySupplementaryItems = supplementaryViews
-                return section
-        } else {
             let supplementaryViews = [
                 NSCollectionLayoutBoundarySupplementaryItem(
                     layoutSize: NSCollectionLayoutSize(
@@ -197,41 +224,28 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
                 section.orthogonalScrollingBehavior = .groupPaging
                 section.boundarySupplementaryItems = supplementaryViews
                 return section
-        }
             }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return sectionsDataSource[section].count
+        return sectionsDataSource[section].recipes.count
        }
 
        func numberOfSections(in collectionView: UICollectionView) -> Int {
-           return recipeCategories.count
+           return sectionsDataSource.count
        }
 
        func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-           if indexPath.section == 0 {
-               guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PopularRecipesCollectionViewCell.identifier, for: indexPath) as? PopularRecipesCollectionViewCell else {
-                   return UICollectionViewCell()
-               }
-               let recipe = sectionsDataSource[indexPath.section][indexPath.row]
-               let foodName = recipe.name
-               let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
-               let imageURL = recipe.thumbnailURL
-               cell.configure(with: PopularRecipesCollectionViewCellViewModel(foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
-               return cell
-           } else {
+           let recipe = sectionsDataSource[indexPath.section].recipes[indexPath.row]
+       let credits = recipe.credits[0]
+       let ratings = recipe.userRatings
+       let foodName = recipe.name
+       let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
+       let imageURL = recipe.thumbnailURL
            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecipesCollectionViewCell.identifier, for: indexPath) as? RecipesCollectionViewCell else {
                return UICollectionViewCell()
            }
-               let recipe = sectionsDataSource[indexPath.section][indexPath.row]
-           let credits = recipe.credits[0]
-           let ratings = recipe.userRatings
-           let foodName = recipe.name
-           let cookingDuration = recipe.totalTimeMinutes ?? recipe.prepTimeMinutes ?? recipe.cookTimeMinutes
-           let imageURL = recipe.thumbnailURL
            cell.configure(with: RecipesCollectionViewCellViewModel(credits: credits, rating: ratings, foodName: foodName, cookingDuration: cookingDuration, imageURL: imageURL))
            return cell
-           }
        }
     
     
@@ -244,12 +258,14 @@ extension MainViewController: UICollectionViewDelegate, UICollectionViewDataSour
             return UICollectionReusableView()
         }
         let section = indexPath.section
-        let title = recipeCategories[section]
+        let category = sectionsDataSource[section].category
+        let title = "\(category)"
         header.configure(with: title)
         return header
     }
 }
 
+// MARK: - Search
 extension MainViewController: UISearchResultsUpdating, UISearchBarDelegate {
     func updateSearchResults(for searchController: UISearchController) {
     }
@@ -296,9 +312,10 @@ extension MainViewController: UISearchResultsUpdating, UISearchBarDelegate {
     }
 }
 
+// MARK: - Delegate
 extension MainViewController: SearchResultsViewControllerDelegate {
     func didTapResult(_ recipe: Recipe) {
-        if let recipes = recipe.recipes {
+        if recipe.recipes != nil {
             let vc = RecipesCollectionViewController(recipe: recipe)
             navigationController?.pushViewController(vc, animated: true)
         } else {

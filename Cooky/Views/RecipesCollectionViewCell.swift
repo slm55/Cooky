@@ -38,7 +38,7 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         stackView.axis = .vertical
         stackView.distribution = .equalSpacing
         stackView.translatesAutoresizingMaskIntoConstraints = false
-        stackView.spacing = 16
+        stackView.spacing = 12
         return stackView
     }()
     
@@ -87,7 +87,22 @@ class RecipesCollectionViewCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        contentView.frame = bounds
+        layer.cornerRadius = 16
+        clipsToBounds = true
+        
+        setUpBackground()
+        
+        contentView.addSubview(topLabelsStackView)
+        contentView.addSubview(bottomLabelsStackView)
+        
+        setUpConstraints()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError()
+    }
+    
+    func setUpBackground() {
         contentView.addSubview(backgroundImageView)
         
         let tintView = UIView()
@@ -96,19 +111,9 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         contentView.addSubview(tintView)
         
         contentView.sendSubviewToBack(backgroundImageView)
-        
-        contentView.addSubview(topLabelsStackView)
-        contentView.addSubview(bottomLabelsStackView)
-        
-        layer.cornerRadius = 16
-        clipsToBounds = true
     }
     
-    required init?(coder: NSCoder) {
-        fatalError()
-    }
-    
-    override func layoutSubviews() {
+    func setUpConstraints() {
         
         backgroundImageView.frame = contentView.bounds
         
@@ -133,6 +138,9 @@ class RecipesCollectionViewCell: UICollectionViewCell {
     }
     
     func configure(with recipe: RecipesCollectionViewCellViewModel){
+        if let url = URL(string: recipe.imageURL) {
+            backgroundImageView.load(url: url)
+        }
         
         if let credits = recipe.credits {
             recipeCreditsLabel.text = credits.name
@@ -140,53 +148,46 @@ class RecipesCollectionViewCell: UICollectionViewCell {
         }
         
         if let ratingScore = recipe.rating?.score {
-            let twoDecimalRating = String(format: "  %.1f", ratingScore * 5.0)
-            let imageAttachment = NSTextAttachment()
-            imageAttachment.image = UIImage(systemName: "star")?.withTintColor(.white)
-
-            let fullString = NSMutableAttributedString(string: "")
-            fullString.append(NSAttributedString(attachment: imageAttachment))
-            fullString.append(NSAttributedString(string: twoDecimalRating))
-            
-            recipeRatingLabel.attributedText = fullString
+            recipeRatingLabel.attributedText = getAttributedRatingString(with: ratingScore)
             recipeRatingLabel.isHidden = false
         }
-        
-        recipeCreditsLabel.sizeToFit()
-        recipeRatingLabel.sizeToFit()
         
         topLabelsStackView.addArrangedSubview(recipeCreditsLabel)
         topLabelsStackView.addArrangedSubview(recipeRatingLabel)
         
         
-        if let prepTime = recipe.cookingDuration {
-            let filteredTimeString = prepTime < 90 ? "  \(prepTime) mins" : "  \(prepTime/60) hrs"
-            
-            let imageAttachment = NSTextAttachment()
-            imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
-
-            let fullString = NSMutableAttributedString(string: "")
-            fullString.append(NSAttributedString(attachment: imageAttachment))
-            fullString.append(NSAttributedString(string: filteredTimeString))
-            
-            recipeDurationLabel.attributedText = fullString
+        if let cookingDuration = recipe.cookingDuration {
+            recipeDurationLabel.attributedText = getAttributedRecipeDurationString(with: cookingDuration)
             recipeDurationLabel.isHidden = false
         }
         
-        
-        recipeNameLabel.frame = CGRect(x: 0, y: 0, width: contentView.frame.width - 32, height: 0)
         recipeNameLabel.text = recipe.foodName
-        
-        
-        recipeDurationLabel.sizeToFit()
-        recipeNameLabel.sizeToFit()
         
         bottomLabelsStackView.addArrangedSubview(recipeNameLabel)
         bottomLabelsStackView.addArrangedSubview(recipeDurationLabel)
+    }
+    
+    func getAttributedRatingString(with rating: Double) -> NSMutableAttributedString {
+        let twoDecimalRating = String(format: "  %.1f", rating * 5.0)
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = UIImage(systemName: "star")?.withTintColor(.white)
+
+        let fullString = NSMutableAttributedString(string: "")
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        fullString.append(NSAttributedString(string: twoDecimalRating))
+        return fullString
+    }
+    
+    func getAttributedRecipeDurationString(with time: Int) -> NSMutableAttributedString {
+        let filteredTimeString = time < 120 ? "  \(time) mins" : "  \(time/60) hrs"
         
-        if let url = URL(string: recipe.imageURL) {
-            backgroundImageView.load(url: url)
-        }
+        let imageAttachment = NSTextAttachment()
+        imageAttachment.image = UIImage(systemName: "timer")?.withTintColor(.white)
+
+        let fullString = NSMutableAttributedString(string: "")
+        fullString.append(NSAttributedString(attachment: imageAttachment))
+        fullString.append(NSAttributedString(string: filteredTimeString))
+        return fullString
     }
 }
 

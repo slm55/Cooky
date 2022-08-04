@@ -25,6 +25,8 @@ class TabBarViewController: UITabBarController {
 
         nav1.tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house"), tag: 1)
         nav2.tabBarItem = UITabBarItem(title: "Favorite", image: UIImage(systemName: "heart"), tag: 1)
+        
+        tabBar.tintColor = .init(red: 15/255, green: 92/255, blue: 100/255, alpha: 1)
 
         nav1.navigationBar.prefersLargeTitles = true
         nav2.navigationBar.prefersLargeTitles = true

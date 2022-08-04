@@ -14,14 +14,14 @@ final class APICaller {
         case APIHost = "tasty.p.rapidapi.com"
     }
     
-    func getRecipesByCategory(category: String, completion: @escaping (Result<[Recipe], Error>) -> Void) {
+    func getRecipesByCategory(category: Category, completion: @escaping (Result<[Recipe], Error>) -> Void) {
         
         let headers = [
             "X-RapidAPI-Key": Constants.APIKey.rawValue,
             "X-RapidAPI-Host": Constants.APIHost.rawValue
         ]
         
-        let tag = (category == "Popular") ? "" : category.lowercased()
+        let tag = (category == .Popular) ? "" : "\(category)".lowercased()
         
         var request = URLRequest(url: URL(string: "https://tasty.p.rapidapi.com/recipes/list?from=0&size=20&tags=\(tag)")! as URL,
                                                 cachePolicy: .useProtocolCachePolicy,
@@ -32,8 +32,8 @@ final class APICaller {
         let session = URLSession.shared
         let dataTask = session.dataTask(with: request as URLRequest) {
             (data, _, error) in
-            guard error == nil else {
-                return
+            if let error = error as? Error {
+                return completion(.failure(error))
             }
             
             guard data != nil else {
